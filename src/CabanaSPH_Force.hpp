@@ -72,6 +72,13 @@ namespace CabanaSPH
         // distance between i and j
         double rij = sqrt(r2ij);
 
+        // wij and dwij
+        // double wij = 0.;
+        double dwij[3] = {0., 0., 0.};
+
+        // h value of particle i
+        double h_i = h( i );
+
         // compute the kernel wij
         // compute_quintic_wij(rij, h_i, &wij);
         // compute the gradient of kernel dwij
@@ -81,7 +88,7 @@ namespace CabanaSPH
           End: common to all equations in SPH.
           ====================================
         */
-        const double mass_j = aosoa_mass( j );
+        const double mass_j = m( j );
         double vijdotdwij = dwij[0]*vel_ij[0] + dwij[1]*vel_ij[1] + dwij[2]*vel_ij[2];
 
         arho (i) += mass_j * vijdotdwij;
@@ -159,6 +166,15 @@ namespace CabanaSPH
         // distance between i and j
         double rij = sqrt(r2ij);
 
+        // wij and dwij
+        // double wij = 0.;
+        double dwij[3] = {0., 0., 0.};
+
+        // h value of particle i
+        double h_i = h( i );
+        double h_j = h( j );
+        double h_ij = (h_i + h_j) / 2.;
+
         // compute the kernel wij
         // compute_quintic_wij(rij, h_i, &wij);
         // compute the gradient of kernel dwij
@@ -168,16 +184,16 @@ namespace CabanaSPH
           End: common to all equations in SPH.
           ====================================
         */
-        const double mass_i = mass( i );
+        const double mass_i = m( i );
         const double rho_i = rho( i );
-        const double p_i = pressure( i );
+        const double p_i = p( i );
 
-        const double mass_j = mass( j );
+        const double mass_j = m( j );
         const double rho_j = rho( j );
-        const double p_j = pressure( j );
+        const double p_j = p( j );
 
         double pij = p_i / (rho_i * rho_i) + p_j / (rho_j * rho_j);
-        double tmp = -m_j * pij
+        double tmp = -mass_j * pij;
 
         // The grad p term
         au (i, 0) += tmp * dwij[0];
@@ -187,15 +203,15 @@ namespace CabanaSPH
         // ===================================
         // Artificial viscosity force
         // ===================================
-        double vijdotriij = vel_ij[0] * pos_ij[0] + vel_ij[1] * pos_ij[1] + vel_ij[2] * pos_ij[2];
+        double vijdotrij = vel_ij[0] * pos_ij[0] + vel_ij[1] * pos_ij[1] + vel_ij[2] * pos_ij[2];
 
         double piij = 0.;
-        if vijdotrij < 0. {
+        if (vijdotrij < 0.) {
             double EPS = 0.01 * h_ij * h_ij;
             double rhoij1 = 1 / (rho_i + rho_j);
             double muij = (h_ij * vijdotrij) / (r2ij + EPS);
             piij = -alpha * c0 * muij;
-            piij = m_j * piij * rhoij1;
+            piij = mass_j * piij * rhoij1;
           }
         au (i, 0) += -piij * dwij[0];
         au (i, 1) += -piij * dwij[1];

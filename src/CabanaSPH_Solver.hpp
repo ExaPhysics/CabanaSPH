@@ -25,15 +25,18 @@ namespace CabanaSPH
 
     using input_type = InputType;
 
-    SolverSPH(input_type _inputs,
-              std::shared_ptr<particle_type> _particles,
-              double _delta,
-              int dim)
+    SolverWCSPH(input_type _inputs,
+                std::shared_ptr<particle_type> _particles,
+                double _delta,
+                int _dim,
+                int _alpha,
+                int _c0)
       : inputs( _inputs ),
         particles( _particles ),
-        force( _force),
-        delta( _delta)
-        dim( _dim)
+        delta( _delta),
+        dim( _dim),
+        alpha( _alpha),
+        c0( _c0)
     {
       num_steps = inputs["num_steps"];
       output_frequency = inputs["output_frequency"];
@@ -73,7 +76,7 @@ namespace CabanaSPH
       // Main timestep loop.
       for ( int step = 0; step <= num_steps; step++ )
         {
-          compute_momentum_equation<ExecutionSpace>( *particles, *neighbors, dt, dim, alpha, c0 );
+          compute_momentum_equation<exec_space>( *particles, *neighbors, dt, dim, alpha, c0 );
           integrator->stage1( *particles );
 
           compute_continuity_equation( *particles, *neighbors, dt, dim );
@@ -83,7 +86,7 @@ namespace CabanaSPH
           neighbors->build( x, 0, x.size(), delta,
                             cell_ratio, mesh_min, mesh_max );
 
-          compute_momentum_equation<ExecutionSpace>( *particles, *neighbors, dt, dim, alpha, c0 );
+          compute_momentum_equation<exec_space>( *particles, *neighbors, dt, dim, alpha, c0 );
           integrator->stage3( *particles );
 
           output( step );
@@ -111,6 +114,8 @@ namespace CabanaSPH
     std::shared_ptr<neighbor_type> neighbors;
     double delta;
     int dim;
+    int alpha;
+    int c0;
   };
 
 

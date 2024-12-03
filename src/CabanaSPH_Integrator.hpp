@@ -49,6 +49,7 @@ namespace CabanaSPH
       // _time.start();
       auto x = p.slicePosition();
       auto u = p.sliceVelocity();
+      auto rho = p.sliceDensity();
       auto arho = p.sliceArho();
       auto dt = _dt;
       auto half_dt = _half_dt;
